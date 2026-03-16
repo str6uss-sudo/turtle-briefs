@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="300">
+<title>Turtle Brief</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<p><a href="index.html">&larr; All Briefs</a></p>
+<div id="brief">Loading...</div>
+<p id="refresh-note"></p>
+<script>
+const params = new URLSearchParams(location.search);
+const date = params.get("date");
+if (date) {
+    document.title = "Brief \u2014 " + date;
+    fetch("briefs/" + date + ".md", {cache: "no-cache"})
+        .then(function(r) { return r.ok ? r.text() : Promise.reject("Not found"); })
+        .then(function(md) {
+            document.getElementById("brief").innerHTML = marked.parse(md);
+            document.getElementById("refresh-note").innerHTML =
+                "<em>Auto-refreshes every 5 minutes. Last loaded: " + new Date().toLocaleTimeString() + "</em>";
+        })
+        .catch(function(e) { document.getElementById("brief").textContent = "Brief not available: " + e; });
+} else {
+    document.getElementById("brief").textContent = "No date specified.";
+}
+</script>
+</body>
+</html>
