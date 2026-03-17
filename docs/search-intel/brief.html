@@ -12,23 +12,106 @@
 <div id="header">
     <p><a href="index.html">&larr; All Briefs</a></p>
     <h1 id="page-title">Loading...</h1>
-    <p class="subtitle">Autonomous intelligence gathered, scored, and synthesized by a parallel LLM pipeline running 24/7 on free-tier providers.</p>
+    <p class="subtitle">Autonomous intelligence gathered, scored, and synthesized by a parallel LLM pipeline running 24/7.</p>
 </div>
+
+<nav id="toc"></nav>
 
 <div id="brief">Loading...</div>
 
 <div id="footer">
     <hr>
     <p class="live-badge" id="refresh-note"></p>
-    <p class="how-it-works">This brief is assembled automatically by <strong>Turtle v3</strong> &mdash; a parallel intelligence engine running 10 independent LLM workers across 4 tiers. Scouts (8B models) extract claims from industry sources. Analysts (70B/120B) score each claim on significance, credibility, and novelty. Synthesizers (405B) identify patterns across findings. A reasoning model (DeepSeek R1) writes the final brief you see here.</p>
+    <p class="how-it-works">This brief is assembled automatically by <strong>Turtle v3</strong> &mdash; a parallel intelligence engine running 10 independent LLM workers across 4 tiers. Scouts extract claims from industry sources. Analysts score each claim on significance, credibility, and novelty. Synthesizers identify patterns across findings. A reasoning model writes the final brief you see here.</p>
     <p class="how-it-works">This page auto-refreshes every 5 minutes. The brief updates throughout the day as new strategist cycles complete.</p>
 </div>
 
 <script>
+function cleanBrief(md) {
+    // Strip <think>...</think> blocks (DeepSeek R1 reasoning traces)
+    md = md.replace(/<think>[\s\S]*?<\/think>/gi, "");
+
+    // Strip word count lines (e.g., "Word count: Approximately 650 words.")
+    md = md.replace(/^.*word\s*count[:\s]*(?:approximately\s*)?\d+\s*words?\.?\s*$/gim, "");
+
+    // Strip "[Source: Not provided]" and similar empty source placeholders
+    md = md.replace(/\[Source:\s*Not\s*provided\]/gi, "");
+
+    // Clean up excessive blank lines left by removals
+    md = md.replace(/\n{3,}/g, "\n\n");
+
+    return md.trim();
+}
+
+function buildToc(container) {
+    var headings = container.querySelectorAll("h2, h3");
+    if (headings.length < 2) return;
+
+    var toc = document.getElementById("toc");
+    var html = '<p class="toc-title">Contents</p><ul>';
+
+    headings.forEach(function(h, i) {
+        var id = "section-" + i;
+        h.id = id;
+        var indent = h.tagName === "H3" ? ' class="toc-sub"' : "";
+        html += '<li' + indent + '><a href="#' + id + '">' + h.textContent + '</a></li>';
+    });
+
+    html += "</ul>";
+    toc.innerHTML = html;
+}
+
+function makeCollapsible(container) {
+    // Wrap each h2-section in a collapsible details/summary
+    var children = Array.from(container.childNodes);
+    var sections = [];
+    var current = null;
+
+    children.forEach(function(node) {
+        if (node.nodeType === 1 && node.tagName === "H2") {
+            if (current) sections.push(current);
+            current = { heading: node, nodes: [] };
+        } else if (current) {
+            current.nodes.push(node);
+        }
+        // Nodes before the first h2 stay in place
+    });
+    if (current) sections.push(current);
+
+    sections.forEach(function(section) {
+        var details = document.createElement("details");
+        details.className = "brief-section";
+        details.open = true;
+
+        var summary = document.createElement("summary");
+        summary.innerHTML = section.heading.innerHTML;
+        summary.id = section.heading.id;
+        // Preserve heading style
+        summary.className = "section-heading";
+
+        details.appendChild(summary);
+        section.nodes.forEach(function(n) { details.appendChild(n); });
+
+        // Insert details where the heading was
+        section.heading.parentNode.replaceChild(details, section.heading);
+    });
+}
+
+// Ensure all links in the brief open in a new tab
+function externalizeLinks(container) {
+    var links = container.querySelectorAll("a[href]");
+    links.forEach(function(a) {
+        var href = a.getAttribute("href");
+        if (href && !href.startsWith("#")) {
+            a.setAttribute("target", "_blank");
+            a.setAttribute("rel", "noopener noreferrer");
+        }
+    });
+}
+
 var params = new URLSearchParams(location.search);
 var date = params.get("date");
 if (date) {
-    // Derive strategy name from URL path
     var pathParts = location.pathname.split("/").filter(Boolean);
     var strategy = pathParts.length >= 2 ? pathParts[pathParts.length - 2] : "";
     var strategyTitle = strategy ? strategy.replace(/-/g, " ").replace(/\b\w/g, function(c){ return c.toUpperCase(); }) : "Intelligence";
@@ -37,7 +120,12 @@ if (date) {
     fetch("briefs/" + date + ".md", {cache: "no-cache"})
         .then(function(r) { return r.ok ? r.text() : Promise.reject("Not found"); })
         .then(function(md) {
-            document.getElementById("brief").innerHTML = marked.parse(md);
+            md = cleanBrief(md);
+            var briefEl = document.getElementById("brief");
+            briefEl.innerHTML = marked.parse(md);
+            externalizeLinks(briefEl);
+            buildToc(briefEl);
+            makeCollapsible(briefEl);
             document.getElementById("refresh-note").innerHTML =
                 "\u26a1 LIVE &mdash; Last refreshed: " + new Date().toLocaleTimeString();
         })
