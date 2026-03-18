@@ -3,137 +3,709 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="300">
-<title>Turtle Brief</title>
-<link rel="stylesheet" href="style.css">
+<title>Search Intel — Turtle v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+:root {
+    --bg: #0c0c14;
+    --surface: #14141f;
+    --surface-2: #1a1a2a;
+    --surface-3: #222236;
+    --text: #e4e4ef;
+    --text-muted: #8888a4;
+    --text-dim: #5a5a78;
+    --accent: #e74c3c;
+    --accent-dim: rgba(231, 76, 60, 0.15);
+    --green: #2ecc71;
+    --green-dim: rgba(46, 204, 113, 0.12);
+    --blue: #5cb8ff;
+    --blue-dim: rgba(92, 184, 255, 0.1);
+    --border: #2a2a42;
+    --border-light: #3a3a55;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Top Bar ──────────────────────────────────────── */
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(12, 12, 20, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.topbar-logo {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    white-space: nowrap;
+}
+
+.topbar-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--border);
+}
+
+.topbar-strategy {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.live-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.7rem;
+    font-family: var(--mono);
+    color: var(--green);
+    background: var(--green-dim);
+    padding: 0.2rem 0.65rem;
+    border-radius: 20px;
+    border: 1px solid rgba(46, 204, 113, 0.2);
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.date-picker {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.date-picker:hover { border-color: var(--border-light); }
+.date-picker:focus { border-color: var(--blue); }
+
+/* ── Page Layout ──────────────────────────────────── */
+
+.page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+
+.hero {
+    padding: 2.5rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+}
+
+.hero-date {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+}
+
+.hero h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.25;
+    margin-bottom: 0.5rem;
+}
+
+.hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+/* ── Table of Contents ────────────────────────────── */
+
+#toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.3rem;
+    margin-bottom: 1.5rem;
+}
+
+#toc:empty { display: none; }
+
+.toc-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+}
+
+#toc ul { list-style: none; }
+
+#toc li { margin: 0.15rem 0; }
+
+#toc li a {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+#toc li a:hover { color: var(--blue); }
+#toc li.sub { padding-left: 1.2rem; }
+#toc li.sub a { font-size: 0.8rem; color: var(--text-dim); }
+
+/* ── Brief Content ────────────────────────────────── */
+
+#brief { min-height: 300px; }
+
+#brief h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 2rem 0 0.7rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+}
+
+#brief h2:first-child { margin-top: 0; }
+
+#brief h3 {
+    font-size: 1.02rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 1.2rem 0 0.4rem;
+}
+
+#brief p { margin: 0.5rem 0; }
+
+#brief ul, #brief ol { margin: 0.5rem 0 0.5rem 1.5rem; }
+
+#brief li { margin: 0.35rem 0; line-height: 1.65; }
+
+#brief strong { color: #fff; }
+#brief em { color: var(--text-muted); }
+
+/* ── Source Links — styled prominently ────────────── */
+
+#brief a[href] {
+    color: var(--blue);
+    text-decoration: none;
+    background: var(--blue-dim);
+    padding: 0.05em 0.35em;
+    border-radius: 3px;
+    font-size: 0.93em;
+    border-bottom: 1px solid rgba(92, 184, 255, 0.25);
+    transition: all 0.15s;
+}
+
+#brief a[href]:hover {
+    background: rgba(92, 184, 255, 0.2);
+    border-bottom-color: var(--blue);
+    color: #8dd0ff;
+}
+
+#brief a[href]::after {
+    content: "\2197";
+    font-size: 0.65em;
+    margin-left: 0.2em;
+    opacity: 0.45;
+    vertical-align: super;
+}
+
+/* TOC anchor links should not get the source style */
+#brief a[href^="#"] {
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+#brief a[href^="#"]::after { content: none; }
+
+#brief code {
+    font-family: var(--mono);
+    background: var(--surface-3);
+    padding: 0.1rem 0.35rem;
+    border-radius: 3px;
+    font-size: 0.85em;
+}
+
+#brief pre {
+    background: var(--surface);
+    padding: 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow-x: auto;
+    margin: 0.8rem 0;
+}
+
+#brief pre code { background: none; padding: 0; }
+
+#brief hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+}
+
+#brief blockquote {
+    border-left: 3px solid var(--accent);
+    padding-left: 1rem;
+    margin: 0.8rem 0;
+    color: var(--text-muted);
+}
+
+/* ── Collapsible Sections ─────────────────────────── */
+
+details.section {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    margin: 1rem 0;
+    background: var(--surface);
+    overflow: hidden;
+}
+
+details.section > summary {
+    cursor: pointer;
+    padding: 0.7rem 1.2rem;
+    background: var(--surface-2);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+details.section > summary:hover { background: var(--surface-3); }
+
+details.section > summary::before {
+    content: "\25B8";
+    font-size: 0.8em;
+    color: var(--text-dim);
+    transition: transform 0.2s ease;
+}
+
+details.section[open] > summary::before { transform: rotate(90deg); }
+details.section > summary::-webkit-details-marker { display: none; }
+details.section > *:not(summary) { padding: 0 1.2rem; }
+details.section > p:first-of-type { padding-top: 0.8rem; }
+details.section > *:last-child { padding-bottom: 1rem; }
+
+/* ── Footer ───────────────────────────────────────── */
+
+.footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.footer-refresh {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--green);
+    margin-bottom: 1rem;
+}
+
+.footer-about {
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    line-height: 1.6;
+    max-width: 700px;
+}
+
+.footer-about strong { color: var(--text-muted); }
+
+/* ── Loading / Error States ───────────────────────── */
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    gap: 1rem;
+    color: var(--text-muted);
+}
+
+.spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.error-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+}
+
+.error-state h2 { color: var(--accent); border: none; margin-bottom: 0.5rem; }
+
+/* ── Responsive ───────────────────────────────────── */
+
+@media (max-width: 640px) {
+    .topbar { padding: 0.5rem 1rem; flex-wrap: wrap; }
+    .page { padding: 0 1rem 3rem; }
+    .hero h1 { font-size: 1.4rem; }
+    .hero-meta { gap: 0.5rem; }
+    details.section > summary { font-size: 1rem; padding: 0.6rem 1rem; }
+}
+</style>
 </head>
 <body>
-<div id="header">
-    <p><a href="index.html">&larr; All Briefs</a></p>
-    <h1 id="page-title">Loading...</h1>
-    <p class="subtitle">Autonomous intelligence gathered, scored, and synthesized by a parallel LLM pipeline running 24/7.</p>
+
+<div class="topbar">
+    <div class="topbar-left">
+        <span class="topbar-logo">Turtle v3</span>
+        <span class="topbar-sep"></span>
+        <span class="topbar-strategy" id="strat-name">Search Intel</span>
+    </div>
+    <div class="topbar-right">
+        <div class="live-pill" id="live-pill">
+            <span class="live-dot"></span>
+            <span id="live-text">LIVE</span>
+        </div>
+        <select class="date-picker" id="date-picker" title="Browse archive">
+            <option value="">Loading...</option>
+        </select>
+    </div>
 </div>
 
-<nav id="toc"></nav>
+<div class="page">
+    <div class="hero">
+        <div class="hero-date" id="hero-date"></div>
+        <h1 id="hero-title">Search Intelligence Brief</h1>
+        <div class="hero-meta" id="hero-meta"></div>
+    </div>
 
-<div id="brief">Loading...</div>
+    <nav id="toc"></nav>
 
-<div id="footer">
-    <hr>
-    <p class="live-badge" id="refresh-note"></p>
-    <p class="how-it-works">This brief is assembled automatically by <strong>Turtle v3</strong> &mdash; a parallel intelligence engine running 10 independent LLM workers across 4 tiers. Scouts extract claims from industry sources. Analysts score each claim on significance, credibility, and novelty. Synthesizers identify patterns across findings. A reasoning model writes the final brief you see here.</p>
-    <p class="how-it-works">This page auto-refreshes every 5 minutes. The brief updates throughout the day as new strategist cycles complete.</p>
+    <div id="brief">
+        <div class="loading">
+            <div class="spinner"></div>
+            <span>Loading intelligence brief...</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="footer-refresh" id="refresh-info"></div>
+        <p class="footer-about">
+            Assembled autonomously by <strong>Turtle v3</strong> &mdash; a parallel intelligence engine with 10 LLM workers across 4 analysis tiers.
+            Scouts extract raw signals from 27+ RSS feeds, Google Search, Brave Search, and Reddit.
+            Analysts score each finding on significance, credibility, and novelty.
+            Synthesizers identify cross-source patterns. A reasoning model writes the final brief.
+            Every claim links back to its original source.
+            This page auto-refreshes every 5 minutes.
+        </p>
+    </div>
 </div>
 
 <script>
-function cleanBrief(md) {
-    // Strip <think>...</think> blocks (DeepSeek R1 reasoning traces)
-    md = md.replace(/<think>[\s\S]*?<\/think>/gi, "");
+(function() {
+    "use strict";
 
-    // Strip word count lines (e.g., "Word count: Approximately 650 words.")
-    md = md.replace(/^.*word\s*count[:\s]*(?:approximately\s*)?\d+\s*words?\.?\s*$/gim, "");
+    var REFRESH_MS = 300000;
+    var BRIEFS_DIR = "briefs/";
+    var currentDate = null;
+    var refreshTimer = null;
 
-    // Strip "[Source: Not provided]" and similar empty source placeholders
-    md = md.replace(/\[Source:\s*Not\s*provided\]/gi, "");
+    /* ── Clean raw markdown ─────────────────────────── */
 
-    // Clean up excessive blank lines left by removals
-    md = md.replace(/\n{3,}/g, "\n\n");
+    function clean(md) {
+        md = md.replace(/<think>[\s\S]*?<\/think>/gi, "");
+        md = md.replace(/^.*word\s*count[:\s]*(?:approximately\s*)?\d+\s*words?\.?\s*$/gim, "");
+        md = md.replace(/\[Source:\s*Not\s*provided\]/gi, "");
+        md = md.replace(/^.*Output\s+ONLY\s+the\s+markdown.*$/gim, "");
+        md = md.replace(/\n{3,}/g, "\n\n");
+        return md.trim();
+    }
 
-    return md.trim();
-}
+    /* ── Table of contents ──────────────────────────── */
 
-function buildToc(container) {
-    var headings = container.querySelectorAll("h2, h3");
-    if (headings.length < 2) return;
+    function buildToc(el) {
+        var hh = el.querySelectorAll("h2, h3");
+        if (hh.length < 2) { document.getElementById("toc").innerHTML = ""; return; }
+        var html = '<p class="toc-label">In this brief</p><ul>';
+        hh.forEach(function(h, i) {
+            var id = "s-" + i;
+            h.id = id;
+            var cls = h.tagName === "H3" ? ' class="sub"' : "";
+            html += '<li' + cls + '><a href="#' + id + '">' + h.textContent + '</a></li>';
+        });
+        document.getElementById("toc").innerHTML = html + "</ul>";
+    }
 
-    var toc = document.getElementById("toc");
-    var html = '<p class="toc-title">Contents</p><ul>';
+    /* ── Collapsible h2 sections ────────────────────── */
 
-    headings.forEach(function(h, i) {
-        var id = "section-" + i;
-        h.id = id;
-        var indent = h.tagName === "H3" ? ' class="toc-sub"' : "";
-        html += '<li' + indent + '><a href="#' + id + '">' + h.textContent + '</a></li>';
-    });
+    function collapse(el) {
+        var nodes = Array.from(el.childNodes);
+        var secs = [], cur = null;
 
-    html += "</ul>";
-    toc.innerHTML = html;
-}
+        nodes.forEach(function(n) {
+            if (n.nodeType === 1 && n.tagName === "H2") {
+                if (cur) secs.push(cur);
+                cur = { h: n, kids: [] };
+            } else if (cur) {
+                cur.kids.push(n);
+            }
+        });
+        if (cur) secs.push(cur);
 
-function makeCollapsible(container) {
-    // Wrap each h2-section in a collapsible details/summary
-    var children = Array.from(container.childNodes);
-    var sections = [];
-    var current = null;
+        secs.forEach(function(s) {
+            var d = document.createElement("details");
+            d.className = "section";
+            d.open = true;
+            var sm = document.createElement("summary");
+            sm.innerHTML = s.h.innerHTML;
+            sm.id = s.h.id;
+            d.appendChild(sm);
+            s.kids.forEach(function(k) { d.appendChild(k); });
+            s.h.parentNode.replaceChild(d, s.h);
+        });
+    }
 
-    children.forEach(function(node) {
-        if (node.nodeType === 1 && node.tagName === "H2") {
-            if (current) sections.push(current);
-            current = { heading: node, nodes: [] };
-        } else if (current) {
-            current.nodes.push(node);
+    /* ── External links open in new tab ─────────────── */
+
+    function externalize(el) {
+        el.querySelectorAll("a[href]").forEach(function(a) {
+            var h = a.getAttribute("href");
+            if (h && !h.startsWith("#")) {
+                a.setAttribute("target", "_blank");
+                a.setAttribute("rel", "noopener noreferrer");
+            }
+        });
+    }
+
+    /* ── Count sources ──────────────────────────────── */
+
+    function countSources(el) {
+        var links = el.querySelectorAll("a[href]");
+        var domains = new Set();
+        var total = 0;
+        links.forEach(function(a) {
+            var h = a.getAttribute("href");
+            if (h && !h.startsWith("#")) {
+                total++;
+                try { domains.add(new URL(h).hostname.replace(/^www\./, "")); } catch(e) {}
+            }
+        });
+        return { total: total, domains: domains.size };
+    }
+
+    /* ── Format date ────────────────────────────────── */
+
+    function fmtDate(d) {
+        try {
+            return new Date(d + "T12:00:00").toLocaleDateString("en-US", {
+                weekday: "long", year: "numeric", month: "long", day: "numeric"
+            });
+        } catch(e) { return d; }
+    }
+
+    /* ── Discover available briefs ──────────────────── */
+
+    function discover(cb) {
+        var today = new Date();
+        var cands = [];
+        for (var i = 0; i < 90; i++) {
+            var d = new Date(today);
+            d.setDate(d.getDate() - i);
+            cands.push(d.toISOString().slice(0, 10));
         }
-        // Nodes before the first h2 stay in place
-    });
-    if (current) sections.push(current);
+        var found = [], pending = cands.length;
+        cands.forEach(function(ds) {
+            var x = new XMLHttpRequest();
+            x.open("HEAD", BRIEFS_DIR + ds + ".md", true);
+            x.onload = function() { if (x.status === 200) found.push(ds); if (!--pending) cb(found.sort().reverse()); };
+            x.onerror = function() { if (!--pending) cb(found.sort().reverse()); };
+            x.send();
+        });
+    }
 
-    sections.forEach(function(section) {
-        var details = document.createElement("details");
-        details.className = "brief-section";
-        details.open = true;
+    /* ── Populate date dropdown ─────────────────────── */
 
-        var summary = document.createElement("summary");
-        summary.innerHTML = section.heading.innerHTML;
-        summary.id = section.heading.id;
-        // Preserve heading style
-        summary.className = "section-heading";
+    function fillPicker(dates) {
+        var sel = document.getElementById("date-picker");
+        sel.innerHTML = "";
+        dates.forEach(function(d) {
+            var o = document.createElement("option");
+            o.value = d;
+            o.textContent = d;
+            if (d === currentDate) o.selected = true;
+            sel.appendChild(o);
+        });
+        sel.onchange = function() {
+            if (sel.value && sel.value !== currentDate) {
+                currentDate = sel.value;
+                history.replaceState(null, "", "?date=" + sel.value);
+                load(sel.value);
+            }
+        };
+    }
 
-        details.appendChild(summary);
-        section.nodes.forEach(function(n) { details.appendChild(n); });
+    /* ── Load and render brief ──────────────────────── */
 
-        // Insert details where the heading was
-        section.heading.parentNode.replaceChild(details, section.heading);
-    });
-}
+    function load(dateStr) {
+        var briefEl = document.getElementById("brief");
+        briefEl.innerHTML = '<div class="loading"><div class="spinner"></div><span>Loading ' + dateStr + '...</span></div>';
 
-// Ensure all links in the brief open in a new tab
-function externalizeLinks(container) {
-    var links = container.querySelectorAll("a[href]");
-    links.forEach(function(a) {
-        var href = a.getAttribute("href");
-        if (href && !href.startsWith("#")) {
-            a.setAttribute("target", "_blank");
-            a.setAttribute("rel", "noopener noreferrer");
+        fetch(BRIEFS_DIR + dateStr + ".md", { cache: "no-cache" })
+            .then(function(r) { return r.ok ? r.text() : Promise.reject("Brief not found"); })
+            .then(function(md) {
+                md = clean(md);
+
+                // Extract h1 title
+                var m = md.match(/^#\s+(.+)$/m);
+                if (m) {
+                    document.getElementById("hero-title").textContent = m[1];
+                    md = md.replace(/^#\s+.+$/m, "");
+                } else {
+                    document.getElementById("hero-title").textContent = "Search Intelligence Brief";
+                }
+
+                document.getElementById("hero-date").textContent = fmtDate(dateStr);
+                document.title = "Search Intel \u2014 " + dateStr;
+
+                briefEl.innerHTML = marked.parse(md);
+                externalize(briefEl);
+                buildToc(briefEl);
+                collapse(briefEl);
+
+                var stats = countSources(briefEl);
+                var meta = "";
+                if (stats.total > 0) meta += '<span>\uD83D\uDD17 ' + stats.total + ' source links \u2014 ' + stats.domains + ' domains</span>';
+                meta += '<span>\uD83D\uDD04 Auto-refreshes every 5 min</span>';
+                document.getElementById("hero-meta").innerHTML = meta;
+                refreshNote();
+            })
+            .catch(function(e) {
+                briefEl.innerHTML = '<div class="error-state"><h2>Brief Unavailable</h2><p>' + e + '</p><p style="margin-top:1rem;font-size:0.85rem;">The pipeline may still be gathering data. Check back soon.</p></div>';
+            });
+    }
+
+    /* ── Refresh timestamp ──────────────────────────── */
+
+    function refreshNote() {
+        var now = new Date();
+        var next = new Date(now.getTime() + REFRESH_MS);
+        document.getElementById("refresh-info").innerHTML =
+            '<span class="live-dot"></span> Last refreshed ' +
+            now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }) +
+            ' \u2014 next at ' +
+            next.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    /* ── Auto-refresh ───────────────────────────────── */
+
+    function autoRefresh() {
+        if (refreshTimer) clearInterval(refreshTimer);
+        refreshTimer = setInterval(function() { if (currentDate) load(currentDate); }, REFRESH_MS);
+    }
+
+    /* ── Strategy name from path ────────────────────── */
+
+    var parts = location.pathname.split("/").filter(Boolean);
+    if (parts.length >= 2) {
+        var s = parts[parts.length - 2];
+        document.getElementById("strat-name").textContent =
+            s.replace(/-/g, " ").replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    }
+
+    /* ── Init ───────────────────────────────────────── */
+
+    var reqDate = new URLSearchParams(location.search).get("date");
+
+    discover(function(dates) {
+        if (reqDate && dates.indexOf(reqDate) !== -1) {
+            currentDate = reqDate;
+        } else if (dates.length) {
+            currentDate = dates[0];
+        }
+
+        fillPicker(dates);
+
+        if (currentDate) {
+            load(currentDate);
+            autoRefresh();
+        } else {
+            document.getElementById("brief").innerHTML =
+                '<div class="error-state"><h2>No Briefs Yet</h2><p>The intelligence pipeline is running but hasn\'t produced a brief yet.</p></div>';
+            document.getElementById("hero-date").textContent = "Awaiting first brief";
+            document.getElementById("live-text").textContent = "WARMING UP";
         }
     });
-}
-
-var params = new URLSearchParams(location.search);
-var date = params.get("date");
-if (date) {
-    var pathParts = location.pathname.split("/").filter(Boolean);
-    var strategy = pathParts.length >= 2 ? pathParts[pathParts.length - 2] : "";
-    var strategyTitle = strategy ? strategy.replace(/-/g, " ").replace(/\b\w/g, function(c){ return c.toUpperCase(); }) : "Intelligence";
-    document.title = strategyTitle + " \u2014 " + date;
-    document.getElementById("page-title").textContent = strategyTitle + " \u2014 " + date;
-    fetch("briefs/" + date + ".md", {cache: "no-cache"})
-        .then(function(r) { return r.ok ? r.text() : Promise.reject("Not found"); })
-        .then(function(md) {
-            md = cleanBrief(md);
-            var briefEl = document.getElementById("brief");
-            briefEl.innerHTML = marked.parse(md);
-            externalizeLinks(briefEl);
-            buildToc(briefEl);
-            makeCollapsible(briefEl);
-            document.getElementById("refresh-note").innerHTML =
-                "\u26a1 LIVE &mdash; Last refreshed: " + new Date().toLocaleTimeString();
-        })
-        .catch(function(e) { document.getElementById("brief").textContent = "Brief not available: " + e; });
-} else {
-    document.getElementById("page-title").textContent = "No date specified";
-    document.getElementById("brief").textContent = "";
-}
+})();
 </script>
 </body>
 </html>
+</content>
+</invoke>
